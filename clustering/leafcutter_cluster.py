@@ -3,6 +3,7 @@ import tempfile
 import os
 import gzip
 import shutil
+import pysam
 
 def main(options,libl):
     
@@ -20,7 +21,14 @@ def pool_junc_reads(flist, options):
     
     outFile = "%s/%s_pooled"%(rundir,outPrefix)
     
-    chromLst = ["chr%d"%x for x in range(1,23)]+['chrX','chrY']+["%d"%x for x in range(1,23)]+['X','Y']
+    # Compile list of chromosomes from bam file header
+    chromLst = []
+    bamFile = flist[0].strip(".junc")
+    header = (i for i in pysam.view("-H", bamFile) if i.startswith("@SQ"))
+    for i in header:
+        chrom = i.split('\t')[1].split(':')[1]
+        chromLst.append(chrom)
+
     by_chrom = {}
     for libl in flist:
         
@@ -47,22 +55,25 @@ def pool_junc_reads(flist, options):
             except: 
                 try: by_chrom[chrom][(A,B)] = int(counts)
                 except: by_chrom[chrom] = {(A,B):int(counts)}
-
+    
     fout = file(outFile, 'w')
     Ncluster = 0
     sys.stderr.write("Parsing...\n")
     for chrom in by_chrom:
         read_ks = [k for k,v in by_chrom[chrom].items() if v >= 3] # a junction must have at least 3 reads
         read_ks.sort()
-        sys.stderr.write("%s.."%chrom)
-        clu = cluster_intervals(read_ks)[0]
-        for cl in clu:
-            if len(cl) > 1: # if cluster has more than one intron  
-                buf = '%s '%chrom
-                for interval, count in [(x, by_chrom[chrom][x]) for x in cl]:
-                    buf += "%d:%d" % interval + ":%d"%count+ " "
-                fout.write(buf+'\n')
-            Ncluster += 1
+        sys.stderr.write("%s.."%chrom)    
+
+        # Be sure that we have clusters for this chromosome
+        if len(read_ks) > 0:
+            clu = cluster_intervals(read_ks)[0]
+            for cl in clu:
+                if len(cl) > 1: # if cluster has more than one intron  
+                    buf = '%s '%chrom
+                    for interval, count in [(x, by_chrom[chrom][x]) for x in cl]:
+                        buf += "%d:%d" % interval + ":%d"%count+ " "
+                    fout.write(buf+'\n')
+                Ncluster += 1
     sys.stderr.write("\nWrote %d clusters..\n"%Ncluster)
     fout.close()
 
