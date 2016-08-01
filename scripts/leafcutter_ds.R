@@ -20,14 +20,14 @@ groups_file=arguments$args[2]
 
 cat("Loading counts from",counts_file,"\n")
 if (!file.exists(counts_file)) stop("File ",counts_file," does not exist")
-counts=read.table(counts_file, header=T)
+counts=read.table(counts_file, header=T, check.names=FALSE)
 
 cat("Loading metadata from",groups_file,"\n")
 if (!file.exists(groups_file)) stop("File ",groups_file," does not exist")
 meta=read.table(groups_file, header=F, stringsAsFactors = F)
 colnames(meta)=c("sample","group")
 
-counts=counts[,meta$sample]
+counts=counts[,meta$sample]      # BREAKS HERE
 
 meta$group=as.factor(meta$group)
 group_names=levels(meta$group)
