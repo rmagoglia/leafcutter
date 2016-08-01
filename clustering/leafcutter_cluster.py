@@ -79,8 +79,15 @@ def pool_junc_reads(flist, options):
 
 
 def sort_junctions(libl, options):
-
-    chromLst = ["chr%d"%x for x in range(1,23)]+['chrX','chrY']+["%d"%x for x in range(1,23)]+['X','Y'] 
+    
+    # Compile list of chromosomes from bam file header
+    chromLst = []
+    bamFile = libl[0].strip(".junc")
+    header = (i for i in pysam.view("-H", bamFile) if i.startswith("@SQ"))
+    for i in header:
+        chrom = i.split('\t')[1].split(':')[1]
+        chromLst.append(chrom)
+     
     outPrefix = options.outprefix
     rundir = options.rundir
     refined_cluster = "%s/%s_refined"%(rundir,outPrefix)
