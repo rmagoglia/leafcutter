@@ -16,7 +16,7 @@ cluster_significance_file=arguments$args[3]
 
 cat("Loading counts from",counts_file,"\n")
 if (!file.exists(counts_file)) stop("File ",counts_file," does not exist")
-counts=read.table(counts_file, header=T)
+counts=read.table(counts_file, header=T, check.names=F)
 
 cat("Loading metadata from",groups_file,"\n")
 if (!file.exists(groups_file)) stop("File ",groups_file," does not exist")
@@ -51,6 +51,9 @@ if (length(top_clus) > opt$max_plots)
 cat("Saving",length(top_clus),"plots to",opt$output,"\n")
 introns=leafcutter:::get_intron_meta(rownames(counts))
 cluster_ids=paste(introns$chr,introns$clu,sep = ":")
+
+# Get rid of "chr" prefixes for compatability
+top_clus = gsub("chr", "", top_clus)
 
 pdf(opt$output, width=8, height=8)
 for (clu in top_clus) {
