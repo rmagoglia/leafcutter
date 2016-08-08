@@ -86,7 +86,10 @@ def sort_junctions(libl, options):
     
     # Compile list of chromosomes from bam file header
     chromLst = []
-    bamFile = libl[0].strip(".junc")
+    if options.example_bamfile:
+        bamFile = options.example_bamfile
+    else:
+        bamFile = libl[0].strip(".junc")
     header = (i for i in pysam.view("-H", bamFile) if i.startswith("@SQ"))
     for i in header:
         chrom = i.split('\t')[1].split(':')[1]
