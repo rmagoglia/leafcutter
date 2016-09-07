@@ -23,7 +23,11 @@ def pool_junc_reads(flist, options):
     
     # Compile list of chromosomes from bam file header
     chromLst = []
-    bamFile = flist[0].strip(".junc")
+    if options.example_bamfile:
+        bamFile = options.example_bamfile
+    else:
+        bamFile = flist[0].strip(".junc")
+
     header = (i for i in pysam.view("-H", bamFile) if i.startswith("@SQ"))
     for i in header:
         chrom = i.split('\t')[1].split(':')[1]
@@ -82,7 +86,10 @@ def sort_junctions(libl, options):
     
     # Compile list of chromosomes from bam file header
     chromLst = []
-    bamFile = libl[0].strip(".junc")
+    if options.example_bamfile:
+        bamFile = options.example_bamfile
+    else:
+        bamFile = libl[0].strip(".junc")
     header = (i for i in pysam.view("-H", bamFile) if i.startswith("@SQ"))
     for i in header:
         chrom = i.split('\t')[1].split(':')[1]
@@ -463,6 +470,9 @@ if __name__ == "__main__":
 
     parser.add_option("-p", "--mincluratio", dest="mincluratio", default = 0.001,
                   help="minimum fraction of reads in a cluster that support a junction (default 0.001)")
+    parser.add_option('-b', "--example-bamfile", default=None,
+                      help="A bam file used in the mapping to read chromosome names from"
+                     )
 
     (options, args) = parser.parse_args()
 
